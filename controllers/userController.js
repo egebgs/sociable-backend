@@ -1,17 +1,24 @@
 const asyncHandler = require('express-async-handler');
+const User = require('../models/userModel');
 //@desc Get all users
 //@route GET /api/users
 //@access Public
 
 const getUsers = asyncHandler(async (req, res) => {
-    res.status(200).json({message: 'Get User route'});
+    const users = await User.find();
+    res.status(200).json({users});
 });
 
 //@desc Get all users
 //@route GET /api/users
 //@access Public
 const getUser = asyncHandler(async(req, res) => {
-    res.status(200).json({message: 'Get User route for id: ' + req.params.id});
+    const user = await User.findById(req.params.id);
+    if(!user){
+        res.status(404);
+        throw new Error('User not found');
+    }
+    res.status(200).json({user});
 });
 
 
@@ -19,20 +26,36 @@ const getUser = asyncHandler(async(req, res) => {
 //@route POST /api/user
 //@access
 const createUser = asyncHandler(async(req, res) => {
-    console.log(req.body);
-    const{name, email, phone} = req.body;
-    if(!name || !email || !phone){
+
+    const{name, email, phone, password} = req.body;
+    if(!name || !email || !phone || !password){
         res.status(400);
         throw new Error('Please fill all the fields');
     }
-    res.status(201).json({message: 'Create user route'});
+    const user = await User.create({
+        name,
+        email,
+        phone,
+        password
+    });
+    res.status(201).json({user});
 });
 
 //@desc Update user by id
 //@route PUT /api/user/:id
 //@access Public
 const updateUser = asyncHandler(async(req, res) => {
-    res.status(200).json({message: 'Update User route for id: ' + req.params.id});
+    const user = await User.findById(req.params.id);
+    if(!user){
+        res.status(404);
+        throw new Error('User not found');
+    }
+    const updatedUser = User.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new:true }
+    );
+    res.status(200).json({updatedUser});
 });
 
 //@desc Delete user by id
