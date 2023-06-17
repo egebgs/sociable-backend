@@ -80,7 +80,21 @@ const loginUser = asyncHandler(async (req, res) => {
 
 const currentUser = asyncHandler(async (req, res) => {
     res.json(req.user);
-}); 
+});
+
+const updateUser = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user.id);
+    if(!user){
+        res.status(404);
+        throw new Error("User not found");
+    }
+    const updatedUser = await User.findByIdAndUpdate(
+        req.user.id,
+        req.body,
+        {new:true}
+    );
+    res.status(200).json(updatedUser);
+});
 
 
-module.exports = {registerUser, currentUser, loginUser};
+module.exports = {registerUser, currentUser, loginUser, updateUser};

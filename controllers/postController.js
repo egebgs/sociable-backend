@@ -55,7 +55,7 @@ const getAllPostsOfUser = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error("No posts found");
     }
-}
+});
 
 //@desc Get a post by id
 //@route GET /api/post/getPostById/:id
