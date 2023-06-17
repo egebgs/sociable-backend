@@ -1,72 +1,64 @@
-const asyncHandler = require("express-async-handler");
 const Post = require("../models/postModel");
-const User = require("../models/userModel");
+const firebase = require("firebase/app");
+const { getStorage, ref, getDownloadURL, uploadBytesResumable } = require("firebase/storage");
+const multer = require("multer");
 
-//@desc Create a post
-//@route POST /api/post/create
-//@access Private
-
-const createPost = asyncHandler(async (req, res) => {
-    const {content} = req.body;
-    if(!content){
-        res.status(400);
-        throw new Error("Please enter all fields");
+// Create a new Post
+exports.createPost = async (req, res) => {
+    const { content, user_id} = req.body;
+    if(!content || !user_id){
+        return res.status(400).json({ message: 'Please enter all fields' });
     }
-    const post = await Post.create({
-        content,
-        userId: req.user._id,
-    });
-    if(post){
-        res.status(201).json({
-            _id: post._id,
-            content: post.content,
-            userId: post.userId,
-            createdOn: post.createdOn,
+
+    try{
+        const storageRef = ref(storage, `files/${req.content.originalname + Date.now()}`);
+        const metadata = {
+            contentType: req.file.mimetype,
+        };
+
+        const snapshot = await uploadBytesResumable(storageRef, req.file.buffer, metadata);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        const post = await Post.create({
+            content: downloadURL,
+            user_id,
+            createdOn: Date.now()
         });
-    }else{
-        res.status(400);
-        throw new Error("Invalid post data");
+        return res.status(201).json({ post });
+
+    }catch (err){
+        res.status(400).json({ message: err.message });
     }
-});
 
-//@desc Get all posts
-//@route GET /api/post/getAllPosts
-//@access Private
+};
 
-const getAllPosts = asyncHandler(async (req, res) => {
-    const posts = await Post.find().sort({createdOn: -1});
-    if(posts){
-        res.status(200).json(posts);
-    }else {
-        res.status(400);
-        throw new Error("No posts found");
+
+// Get all Posts of a User
+exports.getAllPostsOfUser = async (req, res) => {
+    const { userId } = req.params;
+    const posts = await Post.find({ userId });
+    return res.status(200).json({ posts });
+};
+
+// Get a Post by id
+exports.getPostById = async (req, res) => {
+    const { postId } = req.params;
+    const post = await Post.findById(postId);
+
+    if (!post) {
+        return res.status(404).json({ message: 'Post not found' });
     }
-});
 
-//@desc Get all posts of a user
-//@route GET /api/post/getAllPostsOfUser/:userId
-//@access Private
+    return res.status(200).json({ post });
+};
 
-const getAllPostsOfUser = asyncHandler(async (req, res) => {
-    const posts = await Post.find({userId: req.params.userId}).sort({createdOn: -1});
-    if(posts){
-        res.status(200).json(posts);
-    }else {
-        res.status(400);
-        throw new Error("No posts found");
+// Delete a Post by id
+exports.deletePostById = async (req, res) => {
+    const { postId } = req.params;
+    const post = await Post.findByIdAndRemove(postId);
+
+    if (!post) {
+        return res.status(404).json({ message: 'Post not found' });
     }
-});
 
-//@desc Get a post by id
-//@route GET /api/post/getPostById/:id
-//@access Private
-
-const getPostById = asyncHandler(async (req, res) => {
-    const post = await Post.findById(req.params.id);
-    if(post){
-        res.status(200).json(post);
-    }else {
-        res.status(400);
-        throw new Error("No post found");
-    }
-});
+    return res.status(200).json({ message: 'Post deleted successfully' });
+};
