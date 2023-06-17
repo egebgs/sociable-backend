@@ -1,69 +1,65 @@
 const asyncHandler = require('express-async-handler');
-const User = require('../models/userModel');
-//@desc Get all users
-//@route GET /api/users
+const bcrypt = require('bcrypt');
+const User = require("../models/userModel");
+//@desc Register a user
+//@route POST /api/auth/register
 //@access Public
 
-const getUsers = asyncHandler(async (req, res) => {
-    const users = await User.find();
-    res.status(200).json({users});
-});
+const registerUser = asyncHandler(async (req, res) => {
 
-//@desc Get all users
-//@route GET /api/users
-//@access Public
-const getUser = asyncHandler(async(req, res) => {
-    const user = await User.findById(req.params.id);
-    if(!user){
-        res.status(404);
-        throw new Error('User not found');
-    }
-    res.status(200).json({user});
-});
-
-
-//@desc Create user
-//@route POST /api/user
-//@access
-const createUser = asyncHandler(async(req, res) => {
-
-    const{name, email, phone, password} = req.body;
-    if(!name || !email || !phone || !password){
+    const {username, email, phone, password} = req.body;
+    if(!username || !email || !phone || !password){
         res.status(400);
-        throw new Error('Please fill all the fields');
+        throw new Error("Please enter all fields");
+
     }
+    const [userAvailableForEmail, userAvailableForPhone] = await Promise.all([
+        User.findOne({email}),
+        User.findOne({phone}),
+    ]);
+
+    if(userAvailableForEmail || userAvailableForPhone){
+        res.status(400);
+        throw new Error("User already exists");
+    }
+
+    //Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await User.create({
-        name,
+        username,
         email,
         phone,
-        password
+        password: hashedPassword,
     });
-    res.status(201).json({user});
-});
 
-//@desc Update user by id
-//@route PUT /api/user/:id
-//@access Public
-const updateUser = asyncHandler(async(req, res) => {
-    const user = await User.findById(req.params.id);
-    if(!user){
-        res.status(404);
-        throw new Error('User not found');
+    if(user){
+        res.status(201).json({
+            _id: user._id,
+            email: user.email,
+        });
+        
+    }else{
+        res.status(400);
+        throw new Error("Invalid user data");
     }
-    const updatedUser = User.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new:true }
-    );
-    res.status(200).json({updatedUser});
 });
 
-//@desc Delete user by id
-//@route GET /api/user/:id
+//@desc Login a user
+//@route POST /api/auth/login
 //@access Public
-const deleteUser = asyncHandler(async(req, res) => {
-    res.status(200).json({message: 'Delete User route for id: ' + req.params.id});
+const loginUser = asyncHandler(async (req, res) => {
+    res.json({message: "Login route"});
 });
 
 
-module.exports = {getUsers, createUser, updateUser, deleteUser, getUser};
+//@desc Retrieve current user info
+//@route POST /api/auth/current
+//@access Public
+
+const currentUser = asyncHandler(async (req, res) => {
+    res.json({message: "Current user info"});
+}); 
+
+
+module.exports = {registerUser, currentUser, loginUser};
