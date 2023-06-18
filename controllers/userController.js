@@ -25,10 +25,7 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 
     if(user){
-        res.status(201).json({
-            _id: user._id,
-            username: user.username,
-        });
+        res.status(201).send({ token:accessToken, username: user.username });
         
     }else{
         res.status(400);
@@ -53,8 +50,7 @@ const loginUser = asyncHandler(async (req, res) => {
                 id: user.id
             }
         }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-        res.status(200).json({accessToken});
-
+        res.send({ token:accessToken, username: user.username });
     }
     else{
         res.status(401);
