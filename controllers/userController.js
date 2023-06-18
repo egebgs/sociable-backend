@@ -15,7 +15,6 @@ const registerUser = asyncHandler(async (req, res) => {
 
     }
 
-    
     //Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -25,10 +24,7 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 
     if(user){
-        res.status(201).json({
-            _id: user._id,
-            username: user.username,
-        });
+        res.status(201).json(user);
         
     }else{
         res.status(400);
@@ -47,13 +43,13 @@ const loginUser = asyncHandler(async (req, res) => {
     }
     const user = await User.findOne({username});
     if(user && (await bcrypt.compare(password, user.password))){
-        const accessToken = jwt.sign({
+        const token = jwt.sign({
             user: {
                 username: user.username,
                 id: user.id
             }
-        }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
-        res.status(200).json({accessToken});
+        }, process.env.ACCESS_TOKEN_SECRET );
+        res.status(200).json({token,username});
 
     }
     else{
@@ -67,9 +63,20 @@ const loginUser = asyncHandler(async (req, res) => {
 //@route POST /api/user/current
 //@access Public
 
+//@desc Retrieve current user info
+//@route POST /api/user/current
+//@access Public
 const currentUser = asyncHandler(async (req, res) => {
-    res.json(req.user);
+    const user = await User.findById(req.user.id);
+    if(user){
+        res.json(user);
+    }
+    else{
+        res.status(404);
+        throw new Error("User not found");
+    }
 });
+
 
 const updateUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user.id);
