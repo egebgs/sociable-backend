@@ -13,13 +13,13 @@ const createPost = asyncHandler(async (req, res, next) => {
     });
 
     const bucket = storage.bucket('gs://socialize-f4439.appspot.com');
-    console.log(req.file)
+
 
     if (!req.file) {
         res.status(400).send('No file uploaded.');
         return;
     }
-    const blob = bucket.file(req.file.originalname);
+    const blob = bucket.file(`post${Date.now()}${req.user.id}${req.file.originalname}`);
     const blobStream = blob.createWriteStream();
 
     blobStream.on('error', (err) => {

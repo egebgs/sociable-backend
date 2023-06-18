@@ -112,7 +112,7 @@ const changeProfilePicture = asyncHandler(async (req, res, next) => {
         res.status(400).send('No file uploaded.');
         return;
     }
-    const blob = bucket.file(req.file.originalname);
+    const blob = bucket.file(`pfp${Date.now()}${req.user.id}${req.file.originalname}`);;
     const blobStream = blob.createWriteStream();
 
     blobStream.on('error', (err) => {
