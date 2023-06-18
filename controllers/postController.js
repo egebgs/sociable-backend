@@ -1,64 +1,46 @@
 const Post = require("../models/postModel");
-const firebase = require("firebase/app");
-const { getStorage, ref, getDownloadURL, uploadBytesResumable } = require("firebase/storage");
 const multer = require("multer");
+const asyncHandler = require('express-async-handler');
+const {Storage} = require('@google-cloud/storage');
+const {firebaseConfig} = require("../config/firebaseConfig");
+require('dotenv').config();
 
-// Create a new Post
-exports.createPost = async (req, res) => {
-    const { content, user_id} = req.body;
-    if(!content || !user_id){
-        return res.status(400).json({ message: 'Please enter all fields' });
+
+const createPost = asyncHandler(async (req, res, next) => {
+    let imageURL = "";
+    const storage = new Storage({
+        projectId: firebaseConfig.projectId,
+        keyFilename: './config/socialize-f4439-firebase-adminsdk-a8fgi-b17c1d771c.json' // Your service account key file path
+    });
+
+    const bucket = storage.bucket('gs://socialize-f4439.appspot.com');
+
+    if (!req.file) {
+        res.status(400).send('No file uploaded.');
+        return;
     }
+    const blob = bucket.file(req.file.originalname);
+    const blobStream = blob.createWriteStream();
 
-    try{
-        const storageRef = ref(storage, `files/${req.content.originalname + Date.now()}`);
-        const metadata = {
-            contentType: req.file.mimetype,
-        };
+    blobStream.on('error', (err) => {
+        console.error(err);
+        next(err);  
+    });
 
-        const snapshot = await uploadBytesResumable(storageRef, req.file.buffer, metadata);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        const post = await Post.create({
-            content: downloadURL,
-            user_id,
-            createdOn: Date.now()
-        });
-        return res.status(201).json({ post });
-
-    }catch (err){
-        res.status(400).json({ message: err.message });
-    }
-
-};
+    blobStream.on('finish', () => {
+        // The public URL can be used to directly access the file via HTTP.
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+        imageURL = publicUrl;
+    });
 
 
-// Get all Posts of a User
-exports.getAllPostsOfUser = async (req, res) => {
-    const { userId } = req.params;
-    const posts = await Post.find({ userId });
-    return res.status(200).json({ posts });
-};
+    res.status(200).send(imageURL);
 
-// Get a Post by id
-exports.getPostById = async (req, res) => {
-    const { postId } = req.params;
-    const post = await Post.findById(postId);
+    blobStream.end(req.file.buffer);
 
-    if (!post) {
-        return res.status(404).json({ message: 'Post not found' });
-    }
 
-    return res.status(200).json({ post });
-};
 
-// Delete a Post by id
-exports.deletePostById = async (req, res) => {
-    const { postId } = req.params;
-    const post = await Post.findByIdAndRemove(postId);
 
-    if (!post) {
-        return res.status(404).json({ message: 'Post not found' });
-    }
+});
 
-    return res.status(200).json({ message: 'Post deleted successfully' });
-};
+module.exports = {createPost};
