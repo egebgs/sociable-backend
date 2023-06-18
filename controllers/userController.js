@@ -84,6 +84,11 @@ const updateUser = asyncHandler(async (req, res) => {
         res.status(404);
         throw new Error("User not found");
     }
+    const sameUsername = await User.findOne({username: req.body.username});
+    if(sameUsername){
+        res.status(400);
+        throw new Error("Username already exists");
+    }
     const updatedUser = await User.findByIdAndUpdate(
         req.user.id,
         req.body,
