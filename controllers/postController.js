@@ -12,7 +12,7 @@ const createPost = asyncHandler(async (req, res, next) => {
         keyFilename: './config/socialize-f4439-firebase-adminsdk-a8fgi-b17c1d771c.json' // Your service account key file path
     });
 
-    const bucket = storage.bucket('gs://socialize-f4439.appspot.com/Posts');
+    const bucket = storage.bucket('gs://socialize-f4439.appspot.com');
     console.log(req.file)
 
     if (!req.file) {
