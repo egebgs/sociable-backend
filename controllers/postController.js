@@ -1,3 +1,4 @@
+
 const Post = require("../models/postModel");
 const multer = require("multer");
 const asyncHandler = require('express-async-handler');
@@ -5,15 +6,14 @@ const {Storage} = require('@google-cloud/storage');
 const {firebaseConfig} = require("../config/firebaseConfig");
 require('dotenv').config();
 
-
 const createPost = asyncHandler(async (req, res, next) => {
-    let imageURL = "";
     const storage = new Storage({
         projectId: firebaseConfig.projectId,
         keyFilename: './config/socialize-f4439-firebase-adminsdk-a8fgi-b17c1d771c.json' // Your service account key file path
     });
 
     const bucket = storage.bucket('gs://socialize-f4439.appspot.com');
+    console.log(req.file)
 
     if (!req.file) {
         res.status(400).send('No file uploaded.');
@@ -24,23 +24,26 @@ const createPost = asyncHandler(async (req, res, next) => {
 
     blobStream.on('error', (err) => {
         console.error(err);
-        next(err);  
+        next(err);
     });
 
-    blobStream.on('finish', () => {
+    blobStream.on('finish', async () => {
         // The public URL can be used to directly access the file via HTTP.
-        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`
-        imageURL = publicUrl;
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+        const newPost = await Post.create({
+            userId: req.user.id,
+            imageURL: publicUrl
+        });
+
+        if(newPost){
+            res.status(201).send(newPost);
+        } else {
+            res.status(400);
+            throw new Error('Invalid post data');
+        }
     });
-
-
-    res.status(200).send(imageURL);
 
     blobStream.end(req.file.buffer);
-
-
-
-
 });
 
 module.exports = {createPost};

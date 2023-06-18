@@ -2,6 +2,9 @@ const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require("../models/userModel");
+const {Storage} = require("@google-cloud/storage");
+const {firebaseConfig} = require("../config/firebaseConfig");
+const Post = require("../models/postModel");
 //@desc Register a user
 //@route POST /api/user/register
 //@access Public
@@ -97,5 +100,39 @@ const updateUser = asyncHandler(async (req, res) => {
     res.status(200).json(updatedUser);
 });
 
+const changeProfilePicture = asyncHandler(async (req, res, next) => {
+    const storage = new Storage({
+        projectId: firebaseConfig.projectId,
+        keyFilename: './config/socialize-f4439-firebase-adminsdk-a8fgi-b17c1d771c.json' // Your service account key file path
+    });
 
-module.exports = {registerUser, currentUser, loginUser, updateUser};
+    const bucket = storage.bucket('gs://socialize-f4439.appspot.com');
+    console.log(req.file)
+    if (!req.file) {
+        res.status(400).send('No file uploaded.');
+        return;
+    }
+    const blob = bucket.file(req.file.originalname);
+    const blobStream = blob.createWriteStream();
+
+    blobStream.on('error', (err) => {
+        console.error(err);
+        next(err);
+    });
+
+    blobStream.on('finish', async () => {
+        // The public URL can be used to directly access the file via HTTP.
+        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+        const user = await User.findById(req.user.id);
+        user.profilePicture = publicUrl;
+        user.save();
+        res.status(200).json(user);
+
+
+    });
+
+    blobStream.end(req.file.buffer);
+});
+
+
+module.exports = {registerUser, currentUser, loginUser, updateUser, changeProfilePicture};
