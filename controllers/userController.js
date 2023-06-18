@@ -107,7 +107,7 @@ const changeProfilePicture = asyncHandler(async (req, res, next) => {
     });
 
     const bucket = storage.bucket('gs://socialize-f4439.appspot.com/ProfilePictures');
-    console.log(req.file)
+    
     if (!req.file) {
         res.status(400).send('No file uploaded.');
         return;
