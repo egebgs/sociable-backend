@@ -11,7 +11,7 @@ const multerMiddleware = multer({
     },
 });
 
-router.post("/findUser", validateToken,  findUser);
+router.post("/findUser", findUser);
 
 router.post("/register", registerUser);
 

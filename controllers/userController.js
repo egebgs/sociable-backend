@@ -133,12 +133,16 @@ const changeProfilePicture = asyncHandler(async (req, res, next) => {
 });
 
 const findUser = asyncHandler(async (req, res) => {
-    const user = await User.findOne({username:req.body.username});
+    const { username } = req.body;
+    const user = await User.find({ $text: { $search: username } });
     if(!user){
         res.status(404);
         throw new Error("User not found");
     }
     res.status(200).json(user);
 });
+
+
+
 
 module.exports = {registerUser, currentUser, loginUser, updateUser, changeProfilePicture, findUser};
