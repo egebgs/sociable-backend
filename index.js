@@ -16,7 +16,7 @@ app.use("/api/post", require("./routes/postRoutes"));
 app.use(errorHandler);
 
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on http://0.0.0.0:${port}`);
 });
 
