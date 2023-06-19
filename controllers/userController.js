@@ -44,6 +44,7 @@ const loginUser = asyncHandler(async (req, res) => {
     }
     const user = await User.findOne({username});
     if(user && (await bcrypt.compare(password, user.password))){
+<<<<<<< Updated upstream
         const accessToken = jwt.sign({
             user: {
                 username: user.username,
@@ -55,6 +56,13 @@ const loginUser = asyncHandler(async (req, res) => {
 =======
         }, process.env.ACCESS_TOKEN_SECRET );
         res.status(200).json({ACCESS_TOKEN_SECRET,username});
+=======
+        const token = jwt.sign({
+            username: user.username,
+            id: user.id
+        }, process.env.ACCESS_TOKEN_SECRET );;
+        res.status(200).json({token,username});
+>>>>>>> Stashed changes
 
 >>>>>>> Stashed changes
     }
