@@ -49,8 +49,14 @@ const loginUser = asyncHandler(async (req, res) => {
                 username: user.username,
                 id: user.id
             }
+<<<<<<< Updated upstream
         }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
         res.send({ token:accessToken, username: user.username });
+=======
+        }, process.env.ACCESS_TOKEN_SECRET );
+        res.status(200).json({ACCESS_TOKEN_SECRET,username});
+
+>>>>>>> Stashed changes
     }
     else{
         res.status(401);
