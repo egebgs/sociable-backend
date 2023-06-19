@@ -134,5 +134,13 @@ const changeProfilePicture = asyncHandler(async (req, res, next) => {
     blobStream.end(req.file.buffer);
 });
 
+const findUser = asyncHandler(async (req, res) => {
+    const user = await User.findOne({username:req.body.username});
+    if(!user){
+        res.status(404);
+        throw new Error("User not found");
+    }
+    res.status(200).json(user);
+});
 
-module.exports = {registerUser, currentUser, loginUser, updateUser, changeProfilePicture};
+module.exports = {registerUser, currentUser, loginUser, updateUser, changeProfilePicture, findUser};

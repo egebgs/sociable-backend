@@ -1,5 +1,5 @@
 const express = require('express');
-const {registerUser, currentUser, loginUser, updateUser, changeProfilePicture} = require("../controllers/userController");
+const {registerUser, currentUser, loginUser, updateUser, changeProfilePicture, findUser} = require("../controllers/userController");
 const validateToken = require("../middleware/validateTokenHandler");
 const multer = require("multer");
 const router = express.Router();
@@ -10,6 +10,8 @@ const multerMiddleware = multer({
         fileSize: 5 * 1024 * 1024, // no larger than 5mb
     },
 });
+
+router.post("/findUser", validateToken,  findUser);
 
 router.post("/register", registerUser);
 
