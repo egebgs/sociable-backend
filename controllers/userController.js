@@ -47,10 +47,8 @@ const loginUser = asyncHandler(async (req, res) => {
     const user = await User.findOne({username});
     if(user && (await bcrypt.compare(password, user.password))){
         const token = jwt.sign({
-            user: {
                 username: user.username,
                 id: user.id
-            }
         }, process.env.ACCESS_TOKEN_SECRET );
         res.status(200).json({token,username});
 
