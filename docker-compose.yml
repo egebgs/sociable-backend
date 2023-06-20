@@ -1,10 +1,6 @@
-version: '3'
+version: '3.8'
 services:
-  web:
+  express-app:
     build: .
     ports:
       - "5001:5001"
-    volumes:
-      - .:/usr/src/app
-    environment:
-      - NODE_ENV=production
