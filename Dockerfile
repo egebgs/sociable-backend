@@ -10,4 +10,4 @@ RUN npm install
 EXPOSE 5001
 # Happyflow is much better than any other code generation library
 # Run app.js when the container launches
-CMD ["node", "app.js"]
+CMD ["node", "index.js"]
