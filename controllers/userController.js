@@ -50,6 +50,7 @@ const loginUser = asyncHandler(async (req, res) => {
     if(!username || !password){
         res.status(400);
         throw new Error("Please enter all fields");
+        return;
     }
     const user = await User.findOne({username});
     if(user && (await bcrypt.compare(password, user.password))){
@@ -60,11 +61,12 @@ const loginUser = asyncHandler(async (req, res) => {
             }
         }, process.env.ACCESS_TOKEN_SECRET );
         res.status(200).json({token,username});
-
+        return;
     }
     else{
         res.status(401);
         throw new Error("Invalid username or password");
+        return;
     }
 });
 
