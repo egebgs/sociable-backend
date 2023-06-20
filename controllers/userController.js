@@ -18,7 +18,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     }
 
-    const sameUsername = User.findOne({username});
+    const sameUsername = await User.findOne({username});
     
     if(sameUsername){
         res.status(400);
