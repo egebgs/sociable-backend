@@ -54,8 +54,10 @@ const loginUser = asyncHandler(async (req, res) => {
     const user = await User.findOne({username});
     if(user && (await bcrypt.compare(password, user.password))){
         const token = jwt.sign({
+            user: {
                 username: user.username,
                 id: user.id
+            }
         }, process.env.ACCESS_TOKEN_SECRET );
         res.status(200).json({token,username});
 
@@ -74,6 +76,7 @@ const loginUser = asyncHandler(async (req, res) => {
 //@desc Retrieve current user info
 //@route POST /api/user/current
 //@access Public
+
 const currentUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user.id);
     if(user){
@@ -84,6 +87,7 @@ const currentUser = asyncHandler(async (req, res) => {
         throw new Error("User not found");
     }
 });
+
 
 
 const updateUser = asyncHandler(async (req, res) => {
