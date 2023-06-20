@@ -6,6 +6,10 @@ const {Storage} = require('@google-cloud/storage');
 const {firebaseConfig} = require("../config/firebaseConfig");
 require('dotenv').config();
 
+//@desc Create a post
+//@route POST /api/post/create
+//@access Private
+
 const createPost = asyncHandler(async (req, res, next) => {
     const storage = new Storage({
         projectId: firebaseConfig.projectId,

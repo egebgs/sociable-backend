@@ -18,6 +18,13 @@ const registerUser = asyncHandler(async (req, res) => {
 
     }
 
+    const sameUsername = User.findOne({username});
+    
+    if(sameUsername){
+        res.status(400);
+        throw new Error("Username already exists");
+    }
+
     //Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
