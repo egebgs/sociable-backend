@@ -50,7 +50,6 @@ const loginUser = asyncHandler(async (req, res) => {
     if(!username || !password){
         res.status(400);
         throw new Error("Please enter all fields");
-        return;
     }
     const user = await User.findOne({username});
     if(user && (await bcrypt.compare(password, user.password))){
@@ -61,12 +60,11 @@ const loginUser = asyncHandler(async (req, res) => {
             }
         }, process.env.ACCESS_TOKEN_SECRET );
         res.status(200).json({token,username});
-        return;
+
     }
     else{
         res.status(401);
         throw new Error("Invalid username or password");
-        return;
     }
 });
 
@@ -146,12 +144,18 @@ const changeProfilePicture = asyncHandler(async (req, res, next) => {
 });
 
 const findUser = asyncHandler(async (req, res) => {
-    const user = await User.findOne({username:req.body.username});
-    if(!user){
-        res.status(404);
-        throw new Error("User not found");
+    try {
+        const username = req.query.username;
+        const user = await User.findOne({ username: username }); // Find user by username
+
+        if (user) {
+            res.json({ _id: user._id, username: user.username }); // Return user's ID and username if found
+        } else {
+            res.status(404).json({ message: 'User not found' }); // Return 404 if user not found
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message }); // Return 500 for server errors
     }
-    res.status(200).json(user);
-});
+}); 
 
 module.exports = {registerUser, currentUser, loginUser, updateUser, changeProfilePicture, findUser};
