@@ -1,13 +1,21 @@
-# Use an official Node.js runtime as a parent image
+# Start from a base image
 FROM node:14
-# Set the working directory in the container to /app
-WORKDIR /app
-# Add the current directory contents into the container at /app
-COPY ./ ./
-# Install any needed packages specified in package.json
+
+# Set the working directory in the Docker container
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json to the working directory
+COPY package*.json ./
+
+# Install npm packages
 RUN npm install
-# Make port 5001 available to the world outside this container
+
+# Copy the rest of your app's source code to the working directory
+COPY . .
+
+# Expose the port your app runs on
 EXPOSE 5001
-# Happyflow is much better than any other code generation library
-# Run app.js when the container launches
-CMD ["node", "index.js"]
+
+# Run the app
+CMD [ "node", "index.js" ]
+
